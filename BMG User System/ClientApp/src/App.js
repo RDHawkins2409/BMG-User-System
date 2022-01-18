@@ -1,22 +1,50 @@
 import React, { Component } from 'react';
-import { Route } from 'react-router';
-import { Layout } from './components/Layout';
 import { Home } from './components/Home';
-import { FetchData } from './components/FetchData';
-import { Counter } from './components/Counter';
 
 import './custom.css'
+import { NavMenu } from './components/NavMenu';
+import { Container } from 'reactstrap';
+import { Login } from './components/Login';
 
 export default class App extends Component {
   static displayName = App.name;
 
-  render () {
+  constructor(props) {
+    super(props);
+    this.state = { user: -1, login: true }
+  }
+
+  loginCall = async (e, username, password) => {
+    e.preventDefault();
+    const response = await fetch("user/" + username + "/" + password);
+    const data = await response.json();
+    console.log(data);
+    if(data !== -1){
+      this.setState({
+        user:data,
+        login:false
+      })
+    }
+  }
+
+  updateUserStatus = async(status) => {
+    await fetch("user/" + this.state.user + "/" + status, {
+      method: 'POST',
+    });
+  }
+
+  render() {
+    let contents = this.state.login
+      ? <Login loginCall={this.loginCall}/>
+      : <Home />
+
     return (
-      <Layout>
-        <Route exact path='/' component={Home} />
-        <Route path='/counter' component={Counter} />
-        <Route path='/fetch-data' component={FetchData} />
-      </Layout>
+      <div>
+        <NavMenu updateUser={this.updateUserStatus}/>
+        <Container>
+          {contents}
+        </Container>
+      </div>
     );
   }
 }
